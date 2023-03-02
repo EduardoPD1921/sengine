@@ -58,12 +58,12 @@ fn main() {
     let vec_of_words: Vec<String> = str_file_buffer.iter().map(|word| word.to_string()).collect();
     drop(str_file_buffer);
     
-    let vec_of_found_words = search_through_vec(args.search_term, &vec_of_words);
+    let vec_of_found_words = search_through_vec(&args.search_term, &vec_of_words);
 
     let mut highlighted_text: String = String::new();
     vec_of_words.iter().enumerate().for_each(|(index, word)| {
         let mut found_word_chunks: Vec<FoundWord> = Vec::new();
-        for found_chunk in &vec_of_found_words {
+        for found_chunk in vec_of_found_words.iter() {
             if index == found_chunk.index {
                 found_word_chunks.push(*found_chunk);
             }
@@ -79,9 +79,10 @@ fn main() {
     });
 
     println!("{highlighted_text}");
+    println!("{} matches for '{}'.", vec_of_found_words.len(), args.search_term);
 }
 
-fn search_through_vec(search_term: String, vec_of_words: &Vec<String>) -> Vec<FoundWord> {
+fn search_through_vec(search_term: &String, vec_of_words: &Vec<String>) -> Vec<FoundWord> {
     let mut vec_of_found_words: Vec<FoundWord> = Vec::new();
 
     for (index, word) in vec_of_words.iter().enumerate() {
