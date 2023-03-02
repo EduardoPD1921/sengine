@@ -18,12 +18,15 @@ struct Args {
     search_term: String
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct FoundWord {
     index: usize,
     start: usize,
     end: usize
 }
+
+const START_ANSI_CODE_SIZE: usize = 5;
+const END_ANSI_CODE_SIZE: usize = 4;
 
 impl Args {
     fn new(file_path: String, search_term: String) -> Args {
@@ -57,24 +60,25 @@ fn main() {
     
     let vec_of_found_words = search_through_vec(args.search_term, &vec_of_words);
 
-    let mut text_highlighted = String::new();
-
+    let mut highlighted_text: String = String::new();
     vec_of_words.iter().enumerate().for_each(|(index, word)| {
-        for found_word in &vec_of_found_words {
-            if index == found_word.index {
-                let text_buffer = word.to_owned();
-                let (start_wrap, _) = text_buffer.split_at(found_word.start);
-                let (_, end_wrap) = text_buffer.split_at(found_word.end);
-                let highlighted_word = &text_buffer[found_word.start..found_word.end];
-
-                return text_highlighted.push_str(&format!("{start_wrap}\x1b[47m{highlighted_word}\x1b[0m{end_wrap} "));
+        let mut found_word_chunks: Vec<FoundWord> = Vec::new();
+        for found_chunk in &vec_of_found_words {
+            if index == found_chunk.index {
+                found_word_chunks.push(*found_chunk);
             }
         }
 
-        text_highlighted.push_str(&format!("{word} "));
+        let mut word_to_add = word.to_owned();
+        for (index, found_word_chunk) in found_word_chunks.iter().enumerate() {
+            word_to_add.insert_str(found_word_chunk.start + ((START_ANSI_CODE_SIZE * index) + (END_ANSI_CODE_SIZE * index)), "\x1b[47m");
+            word_to_add.insert_str(found_word_chunk.end + ((START_ANSI_CODE_SIZE * index) + (END_ANSI_CODE_SIZE * index)) + START_ANSI_CODE_SIZE, "\x1b[0m");
+        }
+        
+        highlighted_text.push_str(&format!("{word_to_add} "));
     });
 
-    println!("{text_highlighted}");
+    println!("{highlighted_text}");
 }
 
 fn search_through_vec(search_term: String, vec_of_words: &Vec<String>) -> Vec<FoundWord> {
