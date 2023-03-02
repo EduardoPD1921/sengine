@@ -9,7 +9,8 @@ use std::{
     io::prelude::*,
     fs::File,
     process::exit,
-    env
+    env,
+    mem::drop
 };
 
 struct Args {
@@ -52,6 +53,7 @@ fn main() {
 
     let str_file_buffer: Vec<&str> = file_content.split(' ').collect();
     let vec_of_words: Vec<String> = str_file_buffer.iter().map(|word| word.to_string()).collect();
+    drop(str_file_buffer);
     
     let vec_of_found_words = search_through_vec(args.search_term, &vec_of_words);
 
